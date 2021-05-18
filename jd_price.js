@@ -1,4 +1,4 @@
-const version = '0.0.0.4';
+const version = '0.0.0.5';
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
@@ -53,7 +53,10 @@ function showHistory() {
   const commodity_info = floors[floors.length - 1];
   const shareUrl = commodity_info.data.property.shareUrl;
   // 当前价格
-  now = parseFloat(commodity_info.data.priceInfo.jprice)
+  if(commodity_info.data.otherUseBannerInfo)
+    now = parseFloat(commodity_info.data.otherUseBannerInfo.bannerPrice.replace('¥',''));
+  else
+    now = parseFloat(commodity_info.data.priceInfo.jprice)
   request_history_price(shareUrl, data => {
     if (data) {
       const lowerword = adword_obj();
@@ -167,6 +170,8 @@ function adword_obj() {
         "adword": "",
         "textColor": "#8C8C8C",
         "color": "#f23030",
+        "text-align":"justify",
+        "word-break":"break-all",
         "newALContent": true,
         "hasFold": true,
         "class": "com.jd.app.server.warecoresoa.domain.AdWordInfo.AdWordInfo",
