@@ -1,4 +1,4 @@
-const version = '0.0.0.1';
+const version = '0.0.0.2';
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
@@ -10,7 +10,7 @@ Array.prototype.insert = function (index, item) {
   this.splice(index, 0, item);
 };
 
-if (url.indexOf(path1) != -1) {
+if (url.indexOf(path1) !== -1) {
   let obj = JSON.parse(body);
   delete obj.serverConfig.httpdns;
   delete obj.serverConfig.dnsvip;
@@ -18,7 +18,7 @@ if (url.indexOf(path1) != -1) {
   $done({body: JSON.stringify(obj)});
 }
 
-if (url.indexOf(path3) != -1) {
+if (url.indexOf(path3) !== -1) {
   let obj = JSON.parse(body);
   let JDHttpToolKit = obj.data.JDHttpToolKit;
   if (JDHttpToolKit) {
@@ -28,51 +28,61 @@ if (url.indexOf(path3) != -1) {
   $done({body: JSON.stringify(obj)});
 }
 
-if (url.indexOf(path2) != -1) {
-  $tool.get({url:"https://raw.githubusercontent.com/JDHelloWorld/jd_price/main/version.log"},(err,resp,data)=>{
-    if (version !== data.replace('\n','')) {
-      $tool.notify('请更新！',`最新：${data},当前：${version}`,'Gayhub:JDHelloWorld')
-      $done({body});
-      return false
-    }else{
-      let obj = JSON.parse(body);
-      const floors = obj.floors;
-      const commodity_info = floors[floors.length - 1];
-      const shareUrl = commodity_info.data.property.shareUrl;
-      request_history_price(shareUrl, data => {
-        if (data) {
-          const lowerword = adword_obj();
-          lowerword.data.ad.textColor = "#fe0000";
-          let bestIndex = 0;
-          for (let index = 0; index < floors.length; index++) {
-            const element = floors[index];
-            if (element.mId == lowerword.mId) {
-              bestIndex = index + 1;
-              break;
-            } else {
-              if (element.sortId > lowerword.sortId) {
-                bestIndex = index;
-                break;
-              }
-            }
-          }
+if (url.indexOf(path2) !== -1) {
+  if (Math.ceil(Math.random() * 5) === 1) {
+    // 20%几率检查更新
+    $tool.get({url: "https://raw.githubusercontent.com/JDHelloWorld/jd_price/main/version.log"}, (err, resp, data) => {
+      if (version !== data.replace('\n', '')) {
+        $tool.notify('请更新！', 'Gayhub:JDHelloWorld', `最新：${data},当前：${version}`,)
+        $done({body});
+        return false
+      } else {
+        showHistory()
+      }
+    })
+  } else {
+    // 直接运行
+    showHistory()
+  }
+}
 
-          // 成功
-          if (data.ok === 1) {
-            lowerword.data.ad.adword = data.text;
-            floors.insert(bestIndex, lowerword);
-          }
-
-          // 失败
-          if (data.ok === 0) {
-            lowerword.data.ad.adword = "⚠️ " + "失败！";
-            floors.insert(bestIndex, lowerword);
-          }
-          $done({body: JSON.stringify(obj)});
+function showHistory() {
+  let obj = JSON.parse(body);
+  const floors = obj.floors;
+  const commodity_info = floors[floors.length - 1];
+  const shareUrl = commodity_info.data.property.shareUrl;
+  request_history_price(shareUrl, data => {
+    if (data) {
+      const lowerword = adword_obj();
+      lowerword.data.ad.textColor = "#fe0000";
+      let bestIndex = 0;
+      for (let index = 0; index < floors.length; index++) {
+        const element = floors[index];
+        if (element.mId === lowerword.mId) {
+          bestIndex = index + 1;
+          break;
         } else {
-          $done({body});
+          if (element.sortId > lowerword.sortId) {
+            bestIndex = index;
+            break;
+          }
         }
-      })
+      }
+
+      // 成功
+      if (data.ok === 1) {
+        lowerword.data.ad.adword = data.text;
+        floors.insert(bestIndex, lowerword);
+      }
+
+      // 失败
+      if (data.ok === 0) {
+        lowerword.data.ad.adword = "⚠️ " + "失败！";
+        floors.insert(bestIndex, lowerword);
+      }
+      $done({body: JSON.stringify(obj)});
+    } else {
+      $done({body});
     }
   })
 }
@@ -84,7 +94,7 @@ function request_history_price(share_url, callback) {
     if (!error) {
       let history = {max: 0.00, maxt: "", min: 99999999.00, mint: ""}
       let price30 = {price: 99999999.00, text: ""}
-      let before11 = 0, after11 = 0;
+      let before618 = 0, after618 = 0, before11 = 0, after11 = 0;
       data = JSON.parse(data)['Value']['价格历史'].split('|');
       data.pop();
 
@@ -92,11 +102,13 @@ function request_history_price(share_url, callback) {
         let t = time(parseInt(s.split(',')[0]) * 1000).split(' ')[0].replace(/\./g, '-');
         let price = parseFloat(s.split(',')[1]);
 
+        // 618
+        if (parseInt(s.split(',')[0]) * 1000 < 1592409600000) before618 = price
+        if (parseInt(s.split(',')[0]) * 1000 > 1592409600000 && after618 === 0) after618 = price
+
         // 双十一
-        if (parseInt(s.split(',')[0]) * 1000 < 1605024000000)
-          before11 = price
-        if (parseInt(s.split(',')[0]) * 1000 > 1605024000000 && after11 === 0)
-          after11 = price
+        if (parseInt(s.split(',')[0]) * 1000 < 1605024000000) before11 = price
+        if (parseInt(s.split(',')[0]) * 1000 > 1605024000000 && after11 === 0) after11 = price
 
         // 历史最高、低
         if (price > history.max) {
@@ -114,11 +126,12 @@ function request_history_price(share_url, callback) {
           price30.text = t;
         }
       }
-      // 价格遍历结束
-      console.log(`30天最低价：${price30.text}\t${price30.price}`);
-      console.log('双十一：', Math.min(...[before11, after11]));
 
-      let text = `最高：${history.max}\t${history.maxt}\n最低：${history.min}\t${history.mint}\n双十一：${Math.min(...[before11, after11])}\n30天最低：${price30.price}\t${price30.text}`
+      // 去除99999999
+      if (history.min === 99999999.00) history.min = '-';
+      if (price30.price === 99999999.00) price30.price = '-'
+
+      let text = `最高：\t${history.max}\t\t${history.maxt}\n最低：\t${history.min}\t\t${history.mint}\n618:\t\t${Math.min(...[before618, after618])}\n双十一：\t${Math.min(...[before11, after11])}\n30天：\t\t${price30.price}\t\t${price30.text}`
       callback({ok: 1, text: text});
 
     } else {
