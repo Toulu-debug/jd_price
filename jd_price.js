@@ -1,4 +1,4 @@
-const version = '0.0.0.2';
+const version = '0.0.0.3';
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
@@ -90,40 +90,44 @@ function showHistory() {
 function request_history_price(share_url, callback) {
   let id = share_url.match(/product\/(.*)\./)[1]
   let share = `https://item.jd.com/${id}.html`
-  $tool.get({url: `https://kukushouhou.com/history/price?url=${encodeURIComponent(share)}`}, (error, response, data) => {
+  $tool.get({
+    url: `https://m.gwdang.com/trend/data_new?opt=trend&dp_id=${id}-3&search_url=${encodeURIComponent(share)}&from=m&period=360`,
+    headers: {
+      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+    }
+  }, (error, response, data) => {
     if (!error) {
-      let history = {max: 0.00, maxt: "", min: 99999999.00, mint: ""}
-      let price30 = {price: 99999999.00, text: ""}
-      let before618 = 0, after618 = 0, before11 = 0, after11 = 0;
-      data = JSON.parse(data)['Value']['价格历史'].split('|');
-      data.pop();
+      data = JSON.parse(data).data
 
-      for (let s of data) {
-        let t = time(parseInt(s.split(',')[0]) * 1000).split(' ')[0].replace(/\./g, '-');
-        let price = parseFloat(s.split(',')[1]);
+      // 历史最高、低
+      let history = {
+        max: data['series'][0]['max'] / 100,
+        maxt: time(data['series'][0]['max_stamp'] * 1000),
+        min: data['series'][0]['min'] / 100,
+        mint: time(data['series'][0]['min_stamp'] * 1000)
+      };
+
+      let priceList = data['series'][0]['data'];
+      let price30 = {price: 99999999.00, text: ""};
+      let before618 = 0, after618 = 0, before11 = 0, after11 = 0;
+
+      for (let j of priceList) {
+        let stamp = j['x'] * 1000;
+        let day = time(stamp).split(' ')[0];
+        let price = j['y'] / 100;
 
         // 618
-        if (parseInt(s.split(',')[0]) * 1000 < 1592409600000) before618 = price
-        if (parseInt(s.split(',')[0]) * 1000 > 1592409600000 && after618 === 0) after618 = price
+        if (stamp <= 1592409600000) before618 = price
+        if (stamp >= 1592409600000 && after618 === 0) after618 = price
 
         // 双十一
-        if (parseInt(s.split(',')[0]) * 1000 < 1605024000000) before11 = price
-        if (parseInt(s.split(',')[0]) * 1000 > 1605024000000 && after11 === 0) after11 = price
+        if (stamp < 1605024000000) before11 = price
+        if (stamp > 1605024000000 && after11 === 0) after11 = price
 
-        // 历史最高、低
-        if (price > history.max) {
-          history.max = price
-          history.maxt = t;
-        }
-        if (price < history.min) {
-          history.min = price
-          history.mint = t;
-        }
-
-        // 30天内最低价
-        if (dayDiff(t) <= 30 && price < price30.price) {
+        // 30天内
+        if (dayDiff(day) < 31 && price <= price30.price) {
           price30.price = price;
-          price30.text = t;
+          price30.text = day;
         }
       }
 
@@ -167,7 +171,7 @@ function adword_obj() {
 
 function time(time = +new Date()) {
   let date = new Date(time + 8 * 3600 * 1000);
-  return date.toJSON().substr(0, 19).replace('T', ' ').replace(/-/g, '.');
+  return date.toJSON().substr(0, 19).replace('T', ' ').split(' ')[0].replace(/\./g, '-');
 }
 
 function dayDiff(date) {
