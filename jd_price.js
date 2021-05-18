@@ -102,7 +102,8 @@ function request_history_price(share_url, callback) {
     url: `https://m.gwdang.com/trend/data_new?opt=trend&dp_id=${id}-3&search_url=${encodeURIComponent(share)}&from=m&period=360`,
     headers: {
       'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
-    }
+    },
+    timeout: 5000
   }, (error, response, data) => {
     if (!error) {
       data = JSON.parse(data).data
@@ -151,10 +152,9 @@ function request_history_price(share_url, callback) {
       let l4 = `双十一${space(8)}${Nov11}${space(8)}2020-11-11${space(8)}${priceDiff(Nov11, now)}\n`
       let l5 = `三十天${space(8)}${price30.price}${space(8)}${price30.text}${space(8)}${priceDiff(price30.price, now)}`
       let text = l1 + l2 + l3 + l4 + l5
-
       callback({ok: 1, text: text});
-
     } else {
+      $tool.notify("Error", "比价网查询超时！")
       callback(null, null);
     }
   })
