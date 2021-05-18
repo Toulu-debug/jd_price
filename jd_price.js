@@ -30,11 +30,13 @@ if (url.indexOf(path3) !== -1) {
 }
 
 if (url.indexOf(path2) !== -1) {
-  if (Math.ceil(Math.random() * 5) === 1) {
-    // 20%几率检查更新
+  if (Math.ceil(Math.random() * 4) === 1) {
+    // 25%几率检查更新
     $tool.get({url: "https://raw.githubusercontent.com/JDHelloWorld/jd_price/main/version.log"}, (err, resp, data) => {
-      if (version !== data.replace('\n', '')) {
-        $tool.notify('请更新！', 'Gayhub:JDHelloWorld', `最新：${data}当前：${version}`,)
+      let latest = data.split('\n')[0]
+      let msg = data.split('\n')[1]
+      if (version !== latest) {
+        $tool.notify('请更新！', `最新：${latest}  Github:JDHelloWorld`, `更新内容${msg}`,)
         $done({body});
         return false
       } else {
@@ -53,8 +55,8 @@ function showHistory() {
   const commodity_info = floors[floors.length - 1];
   const shareUrl = commodity_info.data.property.shareUrl;
   // 当前价格
-  if(commodity_info.data.otherUseBannerInfo)
-    now = parseFloat(commodity_info.data.otherUseBannerInfo.bannerPrice.replace('¥',''));
+  if (commodity_info.data.otherUseBannerInfo)
+    now = parseFloat(commodity_info.data.otherUseBannerInfo.bannerPrice.replace('¥', ''));
   else
     now = parseFloat(commodity_info.data.priceInfo.jprice)
   request_history_price(shareUrl, data => {
@@ -170,8 +172,8 @@ function adword_obj() {
         "adword": "",
         "textColor": "#8C8C8C",
         "color": "#f23030",
-        "text-align":"justify",
-        "word-break":"break-all",
+        "text-align": "justify",
+        "word-break": "break-all",
         "newALContent": true,
         "hasFold": true,
         "class": "com.jd.app.server.warecoresoa.domain.AdWordInfo.AdWordInfo",
@@ -201,7 +203,7 @@ function priceDiff(old, now) {
   return diff > 0 ? `⬇️${diff.toFixed(2)}` : `⬆️${Math.abs(diff).toFixed(2)}`;
 }
 
-function space(len){
+function space(len) {
   let blank = "";
   for (let i = 0; i < len; i++) {
     blank += " ";
