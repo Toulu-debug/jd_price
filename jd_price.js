@@ -1,4 +1,4 @@
-const version = '0.0.0.5';
+const version = '0.0.0.6';
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
@@ -220,7 +220,7 @@ function tool() {
       const request = require('request')
       return ({request})
     } else {
-      return (null)
+      return null
     }
   })()
   const notify = (title, subtitle, message) => {
