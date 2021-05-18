@@ -131,7 +131,7 @@ function request_history_price(share_url, callback) {
       if (history.min === 99999999.00) history.min = '-';
       if (price30.price === 99999999.00) price30.price = '-'
 
-      let text = `最高：\t${history.max}\t\t${history.maxt}\n最低：\t${history.min}\t\t${history.mint}\n618:\t\t${Math.min(...[before618, after618])}\n双十一：\t${Math.min(...[before11, after11])}\n30天：\t\t${price30.price}\t\t${price30.text}`
+      let text = `最高：\t${history.max}\t\t${history.maxt}\n最低：\t${history.min}\t\t${history.mint}\n618:\t\t${Math.min(...[before618, after618])}\n双十一：\t${Math.min(...[before11, after11])}\n30天：\t${price30.price}\t\t${price30.text}`
       callback({ok: 1, text: text});
 
     } else {
