@@ -1,4 +1,4 @@
-const version = '0.0.0.1';
+const version = "0.0.0.2";
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
@@ -54,9 +54,9 @@ function showHistory() {
   const shareUrl = commodity_info.data.property.shareUrl;
   // 当前价格
   if (commodity_info.data.otherUseBannerInfo)
-    now = parseFloat(commodity_info.data.otherUseBannerInfo.bannerPrice.replace('¥', ''));
+    now = parseInt(commodity_info.data.otherUseBannerInfo.bannerPrice.replace('¥', ''));
   else
-    now = parseFloat(commodity_info.data.priceInfo.jprice)
+    now = parseInt(commodity_info.data.priceInfo.jprice)
   request_history_price(shareUrl, data => {
     if (data) {
       const lowerword = adword_obj();
@@ -116,26 +116,25 @@ function request_history_price(share_url, callback) {
       console.log(err);
       $.msg("ERROR", '出错', err);
       callback(null, null);
-      return false;
     }
 
     data = JSON.parse(data)
     let Jun18 = 0, Nov11 = 0;
-    let price30 = {price: 99999999.00, text: ""};
+    let price30 = {price: 99999999, text: ""};
     let promo = data['promo'];
     let store = data['store'][1]
 
     let history = {
-      max: store['highest'],
+      max: Math.round(store['highest']),
       maxt: time(store['max_stamp'] * 1000),
-      min: store['lowest'],
+      min: Math.round(store['lowest']),
       mint: time(parseInt(store['min_stamp']) * 1000)
     }
 
     for (let j of promo) {
       let stamp = j['time'] * 1000;
       let day = time(stamp).split(' ')[0];
-      let price = j['price'] / 100;
+      let price = Math.round(j['price'] / 100);
       day === '2020-06-18' ? Jun18 = price : ""
       day === '2020-11-11' ? Nov11 = price : ""
       if (dayDiff(day) < 31 && price <= price30.price) {
@@ -144,16 +143,24 @@ function request_history_price(share_url, callback) {
       }
     }
     // 去除99999999
-    if (history.min === 99999999.00) history.min = '-';
-    if (price30.price === 99999999.00) price30.price = '-'
-
-    let l1 = `当前价${space(8)}${now}\n`
-    let l2 = `最高价${space(8)}${history.max}${space(8)}${history.maxt}${space(8)}${priceDiff(history.max, now)}\n最低价${space(8)}${history.min}${space(8)}${history.mint}${space(8)}${priceDiff(history.min, now)}\n`
-    let l3 = `六一八${space(8)}${Jun18}${space(8)}2020-06-18${space(8)}${priceDiff(Jun18, now)}\n`
-    let l4 = `双十一${space(8)}${Nov11}${space(8)}2020-11-11${space(8)}${priceDiff(Nov11, now)}\n`
-    let l5 = `三十天${space(8)}${price30.price}${space(8)}${price30.text}${space(8)}${priceDiff(price30.price, now)}`
-    let text = l1 + l2 + l3 + l4 + l5
-    callback({ok: 1, text: text});
+    if (history.min === 99999999) history.min = '-';
+    if (Jun18 === 0) Jun18 = '-'
+    if (Nov11 === 0) Nov11 = '-'
+    let arr = []
+    arr.push({name: '当前价', price: now, date: '', diff: ''})
+    arr.push({name: '最高价', price: history.max, date: history.maxt, diff: priceDiff(history.max)})
+    arr.push({name: '最低价', price: history.min, date: history.mint, diff: priceDiff(history.min)})
+    arr.push({name: '六一八', price: Jun18, date: "2020-06-18", diff: priceDiff(Jun18)})
+    arr.push({name: '双十一', price: Nov11, date: "2020-11-11", diff: priceDiff(Nov11)})
+    arr.push({name: '三十天', price: price30.price, date: price30.text, diff: priceDiff(price30.price)})
+    let s = ''
+    arr.forEach(item => {
+      if (item.price === '-' || item.price === 0)
+        s += `${item.name}${space('', 7)}-\n`
+      else
+        s += `${item.name}${space('', 6)}${item.price}${space(item.price, 8)}${item.date}${space(item.date, 14)}${item.diff}\n`;
+    })
+    callback({ok: 1, text: s});
   })
 }
 
@@ -193,16 +200,18 @@ function dayDiff(date) {
   return parseInt((new Date() - new Date(date)) / (1000 * 60 * 60 * 24) + '')
 }
 
-function priceDiff(old, now) {
+function priceDiff(old) {
+  if (typeof old !== 'number')
+    return '-'
   let diff = old - now;
   if (diff === 0)
     return '-'
-  return diff > 0 ? `⬇️${diff.toFixed(2)}` : `⬆️${Math.abs(diff).toFixed(2)}`;
+  return diff > 0 ? `↓${Math.round(diff)}` : `↑${Math.round(Math.abs(diff))}`;
 }
 
-function space(len) {
+function space(str, len) {
   let blank = "";
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < len - (str + '').length; i++) {
     blank += " ";
   }
   return blank;
