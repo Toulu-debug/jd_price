@@ -31,15 +31,21 @@ if (url.indexOf(path3) !== -1) {
 
 if (url.indexOf(path2) !== -1) {
   if (Math.ceil(Math.random() * 4) === 1) {
-    $.get({url: "https://raw.githubusercontent.com/JDHelloWorld/jd_price/main/version.log"}, (err, resp, data) => {
-      let latest = data.split('\n')[0]
-      let msg = data.split('\n')[1]
-      if (version !== latest) {
-        $.msg('请更新！', `最新：${latest}  Github:JDHelloWorld`, `更新内容${msg}`)
-        $.done({body});
-        return false
-      } else {
-        showHistory()
+    $.get({url: "https://raw.githubusercontent.com/JDHelloWorld/jd_price/main/version.log", timeout:3000}, (err, resp, data) => {
+      if(!err){
+        try{
+          let latest = data.split('\n')[0]
+          let msg = data.split('\n')[1]
+          if (version !== latest) {
+            $.msg('请更新！', `最新：${latest}  JDHelloWorld`, `更新内容：${msg}`)
+            $.done({body});
+            return false
+          } else {
+            showHistory()
+          }
+        }catch(e){
+          $.logErr(e, resp)
+        }finally{}
       }
     })
   } else {
@@ -109,7 +115,7 @@ function request_history_price(share_url, callback) {
       'Referer': 'https://item.jd.com/',
       'Accept-Language': 'zh-CN,zh;q=0.9'
     },
-    timeout: 5000
+    timeout: 3000
   };
   $.get(option, (err, resp, data) => {
     if (err) {
