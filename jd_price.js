@@ -135,7 +135,7 @@ function request_history_price(share_url, callback) {
       let stamp = j['time'] * 1000;
       let day = time(stamp).split(' ')[0];
       let price = Math.round(j['price'] / 100);
-      day === '2020-06-18' ? Jun18 = price : ""
+      day === '2021-06-18' ? Jun18 = price : ""
       day === '2020-11-11' ? Nov11 = price : ""
       if (dayDiff(day) < 31 && price <= price30.price) {
         price30.price = price;
