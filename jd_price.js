@@ -150,7 +150,7 @@ function request_history_price(share_url, callback) {
     arr.push({name: '当前价', price: now, date: '', diff: ''})
     arr.push({name: '最高价', price: history.max, date: history.maxt, diff: priceDiff(history.max)})
     arr.push({name: '最低价', price: history.min, date: history.mint, diff: priceDiff(history.min)})
-    arr.push({name: '六一八', price: Jun18, date: "2020-06-18", diff: priceDiff(Jun18)})
+    arr.push({name: '六一八', price: Jun18, date: "2021-06-18", diff: priceDiff(Jun18)})
     arr.push({name: '双十一', price: Nov11, date: "2020-11-11", diff: priceDiff(Nov11)})
     arr.push({name: '三十天', price: price30.price, date: price30.text, diff: priceDiff(price30.price)})
     let s = ''
