@@ -1,4 +1,4 @@
-const version = "0.0.0.2";
+const version = "0.0.0.3";
 const path1 = "serverConfig";
 const path2 = "wareBusiness";
 const path3 = "basicConfig";
